@@ -6,6 +6,8 @@ import {
   LEADS,
   STEPS,
   describeStep,
+  prBand,
+  PR_BAND_LABEL,
   qtcBand,
   QTC_BAND_LABEL,
   stepComplete,
@@ -83,10 +85,39 @@ function StepBody({ id, a, set }: { id: StepId; a: Answers; set: (patch: Partial
       return <Choices group="axis" value={a.axis} onPick={(v) => set({ axis: v })} />;
     case "p":
       return <Choices group="pWaves" value={a.pWaves} onPick={(v) => set({ pWaves: v })} />;
-    case "pr":
-      return <Choices group="pr" value={a.pr} onPick={(v) => set({ pr: v })} />;
+    case "pr": {
+      const band = prBand(a.pr);
+      return (
+        <>
+          <label className="field">
+            <span>PR interval in seconds</span>
+            <input
+              inputMode="decimal"
+              value={a.pr}
+              onChange={(e) => set({ pr: e.target.value.replace(/[^0-9.]/g, "").slice(0, 5) })}
+              placeholder="e.g. 0.16"
+            />
+            {band ? (
+              <span className="fine">
+                {PR_BAND_LABEL[band]} (normal is 0.12 to 0.20 s, three to five small squares)
+              </span>
+            ) : a.pr ? (
+              <span className="fine">Enter seconds, between 0.06 and 0.60.</span>
+            ) : null}
+          </label>
+          <p className="sub-q">Is the PR segment sloped?</p>
+          <Choices group="prSloped" value={a.prSloped} onPick={(v) => set({ prSloped: v })} />
+        </>
+      );
+    }
     case "qrs":
-      return <Choices group="qrs" value={a.qrs} onPick={(v) => set({ qrs: v })} />;
+      return (
+        <>
+          <Choices group="qrs" value={a.qrs} onPick={(v) => set({ qrs: v })} />
+          <p className="sub-q">R-wave progression across V1 to V6</p>
+          <Choices group="rProg" value={a.rProg} onPick={(v) => set({ rProg: v })} />
+        </>
+      );
     case "q":
       return (
         <>

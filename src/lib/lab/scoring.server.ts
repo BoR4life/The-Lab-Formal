@@ -1,5 +1,5 @@
 /** Server only. Scores a learner's read against the case key. */
-import { type Answers, type StepId, qtcBand } from "./ecg";
+import { type Answers, type StepId, prBand, qtcBand } from "./ecg";
 
 function jaccard(a: string[], b: string[]): number {
   const A = new Set(a);
@@ -25,10 +25,15 @@ export function scoreStep(id: StepId, key: Answers, ans: Answers): number {
       return eq(ans.axis, key.axis);
     case "p":
       return eq(ans.pWaves, key.pWaves);
-    case "pr":
-      return eq(ans.pr, key.pr);
+    case "pr": {
+      // Measured value is judged by its band, not to the millisecond.
+      const A = prBand(ans.pr);
+      const B = prBand(key.pr);
+      const band = A && B && A === B ? 1 : 0;
+      return (band + eq(ans.prSloped, key.prSloped)) / 2;
+    }
     case "qrs":
-      return eq(ans.qrs, key.qrs);
+      return (eq(ans.qrs, key.qrs) + eq(ans.rProg, key.rProg)) / 2;
     case "q": {
       const kind = eq(ans.qWave, key.qWave);
       if (key.qWave !== "pathological") return kind;

@@ -1,5 +1,5 @@
 /**
- * Twelve Leads: the systematic 10-step read. Shared by client and server.
+ * Twelve Leads: the systematic read, step by step. Shared by client and server.
  * Holds the questions and labels only. The answer key never lives here.
  */
 
@@ -11,9 +11,9 @@ export const STEPS: { id: StepId; n: string; title: string; prompt: string }[] =
   { id: "rate", n: "01", title: "Rate", prompt: "What is the ventricular rate?" },
   { id: "rhythm", n: "02", title: "Rhythm", prompt: "Is the rhythm regular?" },
   { id: "axis", n: "03", title: "Axis", prompt: "What is the cardiac axis? Look at leads I and aVF (and II)." },
-  { id: "p", n: "04", title: "P wave", prompt: "What do the P waves show?" },
-  { id: "pr", n: "05", title: "PR interval", prompt: "How long is the PR interval?" },
-  { id: "qrs", n: "06", title: "QRS", prompt: "What is the QRS width and shape?" },
+  { id: "p", n: "04", title: "P wave", prompt: "What do the P waves look like in lead II?" },
+  { id: "pr", n: "05", title: "PR interval", prompt: "Measure the PR interval, and look at the PR segment." },
+  { id: "qrs", n: "06", title: "QRS", prompt: "How wide is the QRS, and how do the R waves progress across V1 to V6?" },
   { id: "q", n: "07", title: "Q wave", prompt: "Are there pathological Q waves?" },
   { id: "st", n: "08", title: "ST segment", prompt: "Is there ST elevation or depression?" },
   { id: "t", n: "09", title: "T wave", prompt: "What do the T waves show?" },
@@ -35,23 +35,27 @@ export const CHOICES = {
     ["normal", "Normal (−30° to +90°)"],
     ["left", "Left axis deviation (beyond −30°)"],
     ["right", "Right axis deviation (beyond +90°)"],
-    ["extreme", "Extreme axis (−90° to 180°)"],
+    ["extreme", "No man's land (−90° to 180°)"],
   ],
   pWaves: [
-    ["normal", "Normal, one before each QRS"],
-    ["unrelated", "Present, not related to the QRS"],
+    ["positive", "Positive"],
+    ["negative", "Negative"],
+    ["flattened", "Flattened"],
+    ["bifid", "Bifid"],
+    ["tall", "Tall"],
     ["absent", "Absent"],
-    ["abnormal", "Abnormal shape"],
   ],
-  pr: [["short", "<0.12 s"], ["normal", "0.12–0.20 s"], ["long", ">0.20 s"], ["variable", "Variable"]],
+  prSloped: [["no", "No"], ["yes", "Yes"]],
   qrs: [
-    ["narrow", "Narrow, under 0.12 s"],
-    ["rbbb", "Wide, right bundle branch block"],
-    ["lbbb", "Wide, left bundle branch block"],
-    ["wide", "Wide, other"],
+    ["narrow", "Narrow (under 0.12 s)"],
+    ["wide", "Wide (0.12 s or more)"],
+  ],
+  rProg: [
+    ["normal", "Normal"],
+    ["poor", "Poor R-wave progression"],
   ],
   qWave: [["none", "No significant Q waves"], ["pathological", "Pathological Q waves"]],
-  st: [["none", "None"], ["elevation", "Elevation"], ["depression", "Depression"]],
+  st: [["none", "None"], ["elevation", "Up (elevation)"], ["depression", "Down (depression)"]],
   tWaves: [
     ["positive", "Positive (upright)"],
     ["negative", "Negative (inverted)"],
@@ -69,7 +73,9 @@ export type Answers = {
   axis: string;
   pWaves: string;
   pr: string;
+  prSloped: string;
   qrs: string;
+  rProg: string;
   qWave: string;
   qLeads: string[];
   st: string;
@@ -87,7 +93,9 @@ export function blankAnswers(): Answers {
     axis: "",
     pWaves: "",
     pr: "",
+    prSloped: "",
     qrs: "",
+    rProg: "",
     qWave: "",
     qLeads: [],
     st: "",
@@ -115,8 +123,10 @@ export function normaliseAnswers(raw: unknown): Answers {
   a.rhythm = pick("rhythm", r.rhythm);
   a.axis = pick("axis", r.axis);
   a.pWaves = pick("pWaves", r.pWaves);
-  a.pr = pick("pr", r.pr);
+  a.pr = str(r.pr, 5).replace(/[^0-9.]/g, "");
+  a.prSloped = pick("prSloped", r.prSloped);
   a.qrs = pick("qrs", r.qrs);
+  a.rProg = pick("rProg", r.rProg);
   a.qWave = pick("qWave", r.qWave);
   a.qLeads = leads(r.qLeads);
   a.st = pick("st", r.st);
@@ -130,6 +140,18 @@ export function normaliseAnswers(raw: unknown): Answers {
 
 export type QtcBand = "normal" | "prolonged" | "gt500";
 export const QTC_BAND_LABEL: Record<QtcBand, string> = { normal: "Normal", prolonged: "Prolonged", gt500: ">500 ms" };
+
+export type PrBand = "short" | "normal" | "long";
+export const PR_BAND_LABEL: Record<PrBand, string> = { short: "Short", normal: "Normal", long: "Prolonged" };
+
+/** PR interval in seconds (0.06 to 0.60) to a clinical band. */
+export function prBand(v: string | number): PrBand | null {
+  const n = typeof v === "number" ? v : parseFloat(String(v ?? "").trim());
+  if (!Number.isFinite(n) || n < 0.06 || n > 0.6) return null;
+  if (n < 0.12) return "short";
+  if (n <= 0.2) return "normal";
+  return "long";
+}
 
 export function qtcBand(v: string | number): QtcBand | null {
   const n = typeof v === "number" ? v : parseFloat(String(v ?? "").trim());
@@ -150,9 +172,9 @@ export function stepComplete(id: StepId, a: Answers): boolean {
     case "p":
       return !!a.pWaves;
     case "pr":
-      return !!a.pr;
+      return prBand(a.pr) != null && !!a.prSloped;
     case "qrs":
-      return !!a.qrs;
+      return !!a.qrs && !!a.rProg;
     case "q":
       if (!a.qWave) return false;
       return a.qWave === "none" || a.qLeads.length > 0;
@@ -189,12 +211,19 @@ export function describeStep(id: StepId, a: Answers): string {
     case "p":
       text = labelOf("pWaves", a.pWaves);
       break;
-    case "pr":
-      text = labelOf("pr", a.pr);
+    case "pr": {
+      const band = prBand(a.pr);
+      if (band) {
+        text = `${a.pr.trim()} s · ${PR_BAND_LABEL[band]}`;
+        if (a.prSloped === "yes") text += ". PR segment sloped";
+      }
       break;
-    case "qrs":
-      text = labelOf("qrs", a.qrs);
+    }
+    case "qrs": {
+      const bits = [labelOf("qrs", a.qrs), a.rProg ? "R-wave progression: " + labelOf("rProg", a.rProg).replace(" R-wave progression", "") : ""];
+      text = bits.filter(Boolean).join(". ");
       break;
+    }
     case "q":
       text =
         a.qWave === "pathological"
