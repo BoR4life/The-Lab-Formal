@@ -53,11 +53,10 @@ export const CHOICES = {
   qWave: [["none", "No significant Q waves"], ["pathological", "Pathological Q waves"]],
   st: [["none", "None"], ["elevation", "Elevation"], ["depression", "Depression"]],
   tWaves: [
-    ["normal", "Normal"],
-    ["inverted", "Inverted"],
+    ["positive", "Positive (upright)"],
+    ["negative", "Negative (inverted)"],
     ["peaked", "Peaked"],
-    ["flattened", "Flattened"],
-    ["hyperacute", "Hyperacute"],
+    ["absent", "Absent (flat)"],
   ],
   reciprocal: [["yes", "Yes"], ["no", "No"]],
 } as const satisfies Record<string, readonly (readonly [string, string])[]>;
