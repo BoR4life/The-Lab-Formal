@@ -19,10 +19,21 @@ function storeBearer(response: Response) {
   }
 }
 
-export function LabAccount() {
+type LabAccountProps = {
+  /** Heading shown above the form. */
+  title?: string;
+  /** Replaces the default line under the heading. */
+  lead?: string;
+  /** Render nothing once signed in (used inside the case page). */
+  hideWhenSignedIn?: boolean;
+  /** Open on the create-account form. */
+  startWithSignUp?: boolean;
+};
+
+export function LabAccount({ title, lead, hideWhenSignedIn, startWithSignUp }: LabAccountProps = {}) {
   const { user, isPending } = useCurrentUserState();
   const router = useRouter();
-  const [mode, setMode] = useState<Mode>("in");
+  const [mode, setMode] = useState<Mode>(startWithSignUp ? "up" : "in");
   const [firstName, setFirstName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -85,6 +96,8 @@ export function LabAccount() {
     );
   }
 
+  if (user && hideWhenSignedIn) return null;
+
   if (user) {
     const name = profile?.firstName || user.displayName || "there";
     const role = profile?.role === "admin" ? "Admin" : profile ? "Learner" : "…";
@@ -103,11 +116,11 @@ export function LabAccount() {
   return (
     <form className="signin" onSubmit={onSubmit}>
       <p className="eyebrow">Twelve Leads</p>
-      <h2>{mode === "up" ? "Create an account" : "Sign in"}</h2>
+      <h2>{title ?? (mode === "up" ? "Create an account" : "Sign in")}</h2>
       <p className="signin-lead">
-        {mode === "up"
+        {lead ?? (mode === "up"
           ? "Anyone can join. Your name and email are stored with your account, not only on this device."
-          : "Use the email and password for your account."}
+          : "Use the email and password for your account.")}
       </p>
       {mode === "up" ? (
         <label className="field">
