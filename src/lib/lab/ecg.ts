@@ -13,7 +13,7 @@ export const STEPS: { id: StepId; n: string; title: string; prompt: string }[] =
   { id: "axis", n: "03", title: "Axis", prompt: "What is the cardiac axis? Look at leads I and aVF (and II)." },
   { id: "p", n: "04", title: "P wave", prompt: "What do the P waves look like in lead II?" },
   { id: "pr", n: "05", title: "PR interval", prompt: "Measure the PR interval, and look at the PR segment." },
-  { id: "qrs", n: "06", title: "QRS", prompt: "How wide is the QRS, and how do the R waves progress across V1 to V6?" },
+  { id: "qrs", n: "06", title: "QRS", prompt: "How wide is the QRS, which way does it point in V1 and V6, and how do the R waves progress?" },
   { id: "q", n: "07", title: "Q wave", prompt: "Are there pathological Q waves?" },
   { id: "st", n: "08", title: "ST segment", prompt: "Is there ST elevation or depression?" },
   { id: "t", n: "09", title: "T wave", prompt: "What do the T waves show?" },
@@ -50,6 +50,15 @@ export const CHOICES = {
     ["narrow", "Narrow (under 0.12 s)"],
     ["wide", "Wide (0.12 s or more)"],
   ],
+  bbb: [
+    ["rbbb", "Right bundle branch block"],
+    ["lbbb", "Left bundle branch block"],
+    ["other", "Wide, other"],
+  ],
+  polarity: [
+    ["positive", "Positive"],
+    ["negative", "Negative"],
+  ],
   rProg: [
     ["normal", "Normal"],
     ["poor", "Poor R-wave progression"],
@@ -75,6 +84,9 @@ export type Answers = {
   pr: string;
   prSloped: string;
   qrs: string;
+  bbb: string;
+  qrsV1: string;
+  qrsV6: string;
   rProg: string;
   qWave: string;
   qLeads: string[];
@@ -95,6 +107,9 @@ export function blankAnswers(): Answers {
     pr: "",
     prSloped: "",
     qrs: "",
+    bbb: "",
+    qrsV1: "",
+    qrsV6: "",
     rProg: "",
     qWave: "",
     qLeads: [],
@@ -126,6 +141,9 @@ export function normaliseAnswers(raw: unknown): Answers {
   a.pr = str(r.pr, 5).replace(/[^0-9.]/g, "");
   a.prSloped = pick("prSloped", r.prSloped);
   a.qrs = pick("qrs", r.qrs);
+  a.bbb = a.qrs === "wide" ? pick("bbb", r.bbb) : "";
+  a.qrsV1 = pick("polarity", r.qrsV1);
+  a.qrsV6 = pick("polarity", r.qrsV6);
   a.rProg = pick("rProg", r.rProg);
   a.qWave = pick("qWave", r.qWave);
   a.qLeads = leads(r.qLeads);
@@ -174,7 +192,7 @@ export function stepComplete(id: StepId, a: Answers): boolean {
     case "pr":
       return prBand(a.pr) != null && !!a.prSloped;
     case "qrs":
-      return !!a.qrs && !!a.rProg;
+      return !!a.qrs && (a.qrs !== "wide" || !!a.bbb) && !!a.qrsV1 && !!a.qrsV6 && !!a.rProg;
     case "q":
       if (!a.qWave) return false;
       return a.qWave === "none" || a.qLeads.length > 0;
@@ -220,7 +238,12 @@ export function describeStep(id: StepId, a: Answers): string {
       break;
     }
     case "qrs": {
-      const bits = [labelOf("qrs", a.qrs), a.rProg ? "R-wave progression: " + labelOf("rProg", a.rProg).replace(" R-wave progression", "") : ""];
+      const bits = [
+        a.qrs === "wide" && a.bbb ? "Wide, " + labelOf("bbb", a.bbb).replace("Wide, ", "").toLowerCase() : labelOf("qrs", a.qrs),
+        a.qrsV1 ? "V1 " + a.qrsV1 : "",
+        a.qrsV6 ? "V6 " + a.qrsV6 : "",
+        a.rProg ? "R-wave progression: " + labelOf("rProg", a.rProg).replace(" R-wave progression", "").toLowerCase() : "",
+      ];
       text = bits.filter(Boolean).join(". ");
       break;
     }

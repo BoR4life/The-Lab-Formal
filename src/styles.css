@@ -428,3 +428,4 @@ dd { margin: 0; }
 .fb-step.right.compact .fb-short { margin: 4px 0 0; color: var(--muted); }
 .fb-trace { margin: 4px 0 8px; }
 @media (min-width: 960px) { .ecg-peek { display: none; } .case .feedback .ecg-peek { display: inline-flex; } }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }

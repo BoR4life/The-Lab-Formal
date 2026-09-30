@@ -113,7 +113,23 @@ function StepBody({ id, a, set }: { id: StepId; a: Answers; set: (patch: Partial
     case "qrs":
       return (
         <>
-          <Choices group="qrs" value={a.qrs} onPick={(v) => set({ qrs: v })} />
+          <Choices group="qrs" value={a.qrs} onPick={(v) => set(v === "wide" ? { qrs: v } : { qrs: v, bbb: "" })} />
+          {a.qrs === "wide" ? (
+            <>
+              <p className="sub-q">Which pattern?</p>
+              <Choices group="bbb" value={a.bbb} onPick={(v) => set({ bbb: v })} />
+            </>
+          ) : null}
+          <div className="pair">
+            <div>
+              <p className="sub-q">Main deflection in V1</p>
+              <Choices group="polarity" value={a.qrsV1} onPick={(v) => set({ qrsV1: v })} />
+            </div>
+            <div>
+              <p className="sub-q">Main deflection in V6</p>
+              <Choices group="polarity" value={a.qrsV6} onPick={(v) => set({ qrsV6: v })} />
+            </div>
+          </div>
           <p className="sub-q">R-wave progression across V1 to V6</p>
           <Choices group="rProg" value={a.rProg} onPick={(v) => set({ rProg: v })} />
         </>

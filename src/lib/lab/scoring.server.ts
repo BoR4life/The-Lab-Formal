@@ -32,8 +32,12 @@ export function scoreStep(id: StepId, key: Answers, ans: Answers): number {
       const band = A && B && A === B ? 1 : 0;
       return (band + eq(ans.prSloped, key.prSloped)) / 2;
     }
-    case "qrs":
-      return (eq(ans.qrs, key.qrs) + eq(ans.rProg, key.rProg)) / 2;
+    case "qrs": {
+      // Width (and bundle branch pattern when wide), V1 and V6 polarity, R-wave progression.
+      const parts = [eq(ans.qrs, key.qrs), eq(ans.qrsV1, key.qrsV1), eq(ans.qrsV6, key.qrsV6), eq(ans.rProg, key.rProg)];
+      if (key.qrs === "wide") parts.push(eq(ans.bbb, key.bbb));
+      return parts.reduce((x, y) => x + y, 0) / parts.length;
+    }
     case "q": {
       const kind = eq(ans.qWave, key.qWave);
       if (key.qWave !== "pathological") return kind;
