@@ -21,6 +21,8 @@ export function scoreStep(id: StepId, key: Answers, ans: Answers): number {
       return eq(ans.rate, key.rate);
     case "rhythm":
       return eq(ans.rhythm, key.rhythm);
+    case "axis":
+      return eq(ans.axis, key.axis);
     case "p":
       return eq(ans.pWaves, key.pWaves);
     case "pr":

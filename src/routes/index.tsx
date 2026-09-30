@@ -32,7 +32,7 @@ const HOW = [
   },
   {
     title: "Work the trace",
-    body: "Rate, rhythm, P waves, intervals, Q waves, ST, T and QT, one step at a time. Open the full 12-lead and zoom whenever you need to.",
+    body: "Rate, rhythm, axis, P waves, intervals, Q waves, ST, T and QT, one step at a time. Open the full 12-lead and zoom whenever you need to.",
     img: "still-glass-5",
     alt: "A glass cardiac monitor with its leads.",
   },
@@ -106,7 +106,7 @@ function Home() {
               <span className="wordmark-sub">Your call.</span>
             </h1>
             <p className="lede">
-              One 12-lead, one patient story, ten steps to your read. About ten minutes, a new case every Monday, free for
+              One 12-lead, one patient story, one systematic read, step by step. About ten minutes, a new case every Monday, free for
               any nurse.
             </p>
             <div className="hero-actions">

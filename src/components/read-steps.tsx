@@ -79,6 +79,8 @@ function StepBody({ id, a, set }: { id: StepId; a: Answers; set: (patch: Partial
       return <Choices group="rate" value={a.rate} onPick={(v) => set({ rate: v })} />;
     case "rhythm":
       return <Choices group="rhythm" value={a.rhythm} onPick={(v) => set({ rhythm: v })} />;
+    case "axis":
+      return <Choices group="axis" value={a.axis} onPick={(v) => set({ axis: v })} />;
     case "p":
       return <Choices group="pWaves" value={a.pWaves} onPick={(v) => set({ pWaves: v })} />;
     case "pr":

@@ -5,19 +5,20 @@
 
 export const LEADS = ["I", "II", "III", "aVR", "aVL", "aVF", "V1", "V2", "V3", "V4", "V5", "V6"] as const;
 
-export type StepId = "rate" | "rhythm" | "p" | "pr" | "qrs" | "q" | "st" | "t" | "qtc" | "impression";
+export type StepId = "rate" | "rhythm" | "axis" | "p" | "pr" | "qrs" | "q" | "st" | "t" | "qtc" | "impression";
 
 export const STEPS: { id: StepId; n: string; title: string; prompt: string }[] = [
   { id: "rate", n: "01", title: "Rate", prompt: "What is the ventricular rate?" },
   { id: "rhythm", n: "02", title: "Rhythm", prompt: "Is the rhythm regular?" },
-  { id: "p", n: "03", title: "P wave", prompt: "What do the P waves show?" },
-  { id: "pr", n: "04", title: "PR interval", prompt: "How long is the PR interval?" },
-  { id: "qrs", n: "05", title: "QRS", prompt: "What is the QRS width and shape?" },
-  { id: "q", n: "06", title: "Q wave", prompt: "Are there pathological Q waves?" },
-  { id: "st", n: "07", title: "ST segment", prompt: "Is there ST elevation or depression?" },
-  { id: "t", n: "08", title: "T wave", prompt: "What do the T waves show?" },
-  { id: "qtc", n: "09", title: "QT", prompt: "What is the corrected QT (QTc) in milliseconds?" },
-  { id: "impression", n: "10", title: "Impression", prompt: "Put it together. What is your impression?" },
+  { id: "axis", n: "03", title: "Axis", prompt: "What is the cardiac axis? Look at leads I and aVF (and II)." },
+  { id: "p", n: "04", title: "P wave", prompt: "What do the P waves show?" },
+  { id: "pr", n: "05", title: "PR interval", prompt: "How long is the PR interval?" },
+  { id: "qrs", n: "06", title: "QRS", prompt: "What is the QRS width and shape?" },
+  { id: "q", n: "07", title: "Q wave", prompt: "Are there pathological Q waves?" },
+  { id: "st", n: "08", title: "ST segment", prompt: "Is there ST elevation or depression?" },
+  { id: "t", n: "09", title: "T wave", prompt: "What do the T waves show?" },
+  { id: "qtc", n: "10", title: "QT", prompt: "What is the corrected QT (QTc) in milliseconds?" },
+  { id: "impression", n: "11", title: "Impression", prompt: "Put it together. What is your impression?" },
 ];
 
 export const SCORED_STEP_IDS: StepId[] = STEPS.filter((s) => s.id !== "impression").map((s) => s.id);
@@ -29,6 +30,12 @@ export const CHOICES = {
     ["occasional", "Occasionally irregular"],
     ["regularly", "Regularly irregular"],
     ["irregular", "Irregularly irregular"],
+  ],
+  axis: [
+    ["normal", "Normal (−30° to +90°)"],
+    ["left", "Left axis deviation (beyond −30°)"],
+    ["right", "Right axis deviation (beyond +90°)"],
+    ["extreme", "Extreme axis (−90° to 180°)"],
   ],
   pWaves: [
     ["normal", "Normal, one before each QRS"],
@@ -60,6 +67,7 @@ export type ChoiceGroup = keyof typeof CHOICES;
 export type Answers = {
   rate: string;
   rhythm: string;
+  axis: string;
   pWaves: string;
   pr: string;
   qrs: string;
@@ -77,6 +85,7 @@ export function blankAnswers(): Answers {
   return {
     rate: "",
     rhythm: "",
+    axis: "",
     pWaves: "",
     pr: "",
     qrs: "",
@@ -105,6 +114,7 @@ export function normaliseAnswers(raw: unknown): Answers {
   };
   a.rate = pick("rate", r.rate);
   a.rhythm = pick("rhythm", r.rhythm);
+  a.axis = pick("axis", r.axis);
   a.pWaves = pick("pWaves", r.pWaves);
   a.pr = pick("pr", r.pr);
   a.qrs = pick("qrs", r.qrs);
@@ -136,6 +146,8 @@ export function stepComplete(id: StepId, a: Answers): boolean {
       return !!a.rate;
     case "rhythm":
       return !!a.rhythm;
+    case "axis":
+      return !!a.axis;
     case "p":
       return !!a.pWaves;
     case "pr":
@@ -171,6 +183,9 @@ export function describeStep(id: StepId, a: Answers): string {
       break;
     case "rhythm":
       text = labelOf("rhythm", a.rhythm);
+      break;
+    case "axis":
+      text = labelOf("axis", a.axis);
       break;
     case "p":
       text = labelOf("pWaves", a.pWaves);
