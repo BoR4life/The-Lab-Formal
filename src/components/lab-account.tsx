@@ -89,8 +89,7 @@ export function LabAccount({ title, lead, hideWhenSignedIn, startWithSignUp }: L
   if (isPending) {
     return (
       <form className="signin" aria-busy="true">
-        <p className="eyebrow">Twelve Leads</p>
-        <h2>Sign in</h2>
+                <h2>Sign in</h2>
         <p className="signin-lead">Checking this device.</p>
       </form>
     );
@@ -103,7 +102,7 @@ export function LabAccount({ title, lead, hideWhenSignedIn, startWithSignUp }: L
     const role = profile?.role === "admin" ? "Admin" : profile ? "Learner" : "…";
     return (
       <section className="signin" aria-live="polite">
-        <p className="eyebrow">Signed in</p>
+        <p className="card-label">Signed in</p>
         <h2>{name}</h2>
         <p className="signin-lead">
           Role: <strong>{role}</strong>
@@ -115,8 +114,7 @@ export function LabAccount({ title, lead, hideWhenSignedIn, startWithSignUp }: L
 
   return (
     <form className="signin" onSubmit={onSubmit}>
-      <p className="eyebrow">Twelve Leads</p>
-      <h2>{title ?? (mode === "up" ? "Create an account" : "Sign in")}</h2>
+            <h2>{title ?? (mode === "up" ? "Create an account" : "Sign in")}</h2>
       <p className="signin-lead">
         {lead ?? (mode === "up"
           ? "Anyone can join. Your name and email are stored with your account, not only on this device."

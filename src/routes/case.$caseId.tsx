@@ -68,6 +68,7 @@ function CasePage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [saveNote, setSaveNote] = useState("");
+  const [ecgOpen, setEcgOpen] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const submitAfterSignIn = useRef(false);
 
@@ -179,7 +180,6 @@ function CasePage() {
       <>
         <SiteHeader />
         <main className="wrap">
-          <p className="eyebrow">Unavailable</p>
           <h1 className="h-page">{ready || !isPending ? "This case isn't open." : "Loading"}</h1>
           <p>
             <Link to="/">Back to this week's case</Link>
@@ -196,12 +196,17 @@ function CasePage() {
         {lab.status === "draft" ? (
           <p className="warn">Admin preview of a draft. Learners can't see this case yet.</p>
         ) : null}
-        <p className="eyebrow">Twelve Leads · about 10 minutes</p>
-        <h1 className="h-page">{lab.title}</h1>
+        <div className="case-head">
+          <h1 className="h-page">{lab.title}</h1>
+          <p className="case-sub">12-lead ECG, about ten minutes</p>
+        </div>
 
         {feedback ? (
           <>
-            <FeedbackView feedback={feedback} />
+            <FeedbackView
+              feedback={feedback}
+              trace={<EcgViewer src={lab.ecgImage} title={lab.title} open={ecgOpen} onOpenChange={setEcgOpen} />}
+            />
             {role === "admin" ? (
               <button type="button" className="btn secondary" onClick={resetPreview}>
                 Clear my read and try again (admin)
@@ -215,18 +220,18 @@ function CasePage() {
           <div className="case-grid">
             <div className="case-material">
               <div className="card vignette">
-                <p className="eyebrow">Clinical vignette</p>
+                <h2 className="card-label">The patient</h2>
                 <p>{lab.vignette}</p>
               </div>
-              <EcgViewer src={lab.ecgImage} title={lab.title} />
+              <EcgViewer src={lab.ecgImage} title={lab.title} open={ecgOpen} onOpenChange={setEcgOpen} />
             </div>
             <div className="case-work">
               {!ready ? (
                 <p className="fine">Loading your read</p>
               ) : lab.status !== "open" && role !== "admin" ? (
                 <div className="card">
-                  <p className="eyebrow">Closed</p>
-                  <p>This case no longer takes new reads.</p>
+                  <h2 className="card-label">Closed</h2>
+                  <p>This case no longer takes new reads. The next one opens on Monday.</p>
                 </div>
               ) : (
                 <ReadSteps
@@ -239,6 +244,7 @@ function CasePage() {
                   submitLabel={user ? "Submit read" : "Submit read (free account)"}
                   error={error}
                   saveNote={user ? saveNote : ""}
+                  onShowEcg={() => setEcgOpen(true)}
                 />
               )}
               {needSignIn && !user ? (

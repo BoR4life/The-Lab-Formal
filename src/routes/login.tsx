@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LabAccount } from "@/components/lab-account";
+import { SiteHeader } from "@/components/site-header";
 
 export const Route = createFileRoute("/login")({
   component: Login,
@@ -7,14 +8,11 @@ export const Route = createFileRoute("/login")({
 
 function Login() {
   return (
-    <main className="wrap">
-      <div className="landing-head">
-        <p className="eyebrow">Twelve Leads</p>
-        <h1>
-          The Lab<span className="stop">.</span>
-        </h1>
-      </div>
-      <LabAccount />
-    </main>
+    <>
+      <SiteHeader />
+      <main className="wrap narrow">
+        <LabAccount />
+      </main>
+    </>
   );
 }

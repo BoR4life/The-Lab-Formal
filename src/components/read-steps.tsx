@@ -21,6 +21,8 @@ type Props = {
   submitLabel: string;
   error: string;
   saveNote: string;
+  /** Opens the full-screen ECG without leaving the step. */
+  onShowEcg: () => void;
 };
 
 function Choices({
@@ -166,11 +168,31 @@ export function ReadSteps(props: Props) {
 
   return (
     <section className="read card" aria-labelledby="read-title">
-      <div className="progress" aria-hidden="true">
-        <div className="progress-bar" style={{ width: `${(done / total) * 100}%` }} />
-      </div>
-      <p className="fine progress-label">
-        {done} of {total} answered{props.saveNote ? ` · ${props.saveNote}` : ""}
+      <nav className="step-dots" aria-label="Steps">
+        {STEPS.map((s, i) => {
+          const complete = stepComplete(s.id, answers);
+          return (
+            <button
+              key={s.id}
+              type="button"
+              className={`dot${complete ? " done" : ""}${i === index ? " here" : ""}`}
+              aria-label={`${s.title}${complete ? ", answered" : ""}`}
+              aria-current={i === index ? "step" : undefined}
+              onClick={() => onIndex(i)}
+            />
+          );
+        })}
+        <button
+          type="button"
+          className={`dot review-dot${reviewing ? " here" : ""}`}
+          aria-label="Check and submit"
+          aria-current={reviewing ? "step" : undefined}
+          onClick={() => onIndex(total)}
+        />
+      </nav>
+      <p className="progress-label" aria-live="polite">
+        {done} of {total} answered
+        {props.saveNote ? <span className="save-note">{props.saveNote}</span> : null}
       </p>
 
       {reviewing ? (
@@ -184,7 +206,7 @@ export function ReadSteps(props: Props) {
               return (
                 <li key={s.id} className={ok ? "" : "missing"}>
                   <button type="button" className="review-row" onClick={() => onIndex(i)}>
-                    <span className="num">{s.n}</span>
+                    <span className="num">{i + 1}</span>
                     <span className="review-title">{s.title}</span>
                     <span className="review-val">{ok ? describeStep(s.id, answers) : "Still to answer"}</span>
                   </button>
@@ -209,12 +231,15 @@ export function ReadSteps(props: Props) {
         </>
       ) : (
         <>
-          <p className="eyebrow">
-            Step {STEPS[index].n} of {total}
-          </p>
-          <h2 id="read-title" className="step-title">
-            {STEPS[index].title}
-          </h2>
+          <div className="step-head">
+            <h2 id="read-title" className="step-title">
+              <span className="step-n">{index + 1}</span>
+              {STEPS[index].title}
+            </h2>
+            <button type="button" className="ecg-peek" onClick={props.onShowEcg}>
+              View ECG
+            </button>
+          </div>
           <p className="step-prompt">{STEPS[index].prompt}</p>
           <StepBody id={STEPS[index].id} a={answers} set={set} />
           <div className="step-nav">

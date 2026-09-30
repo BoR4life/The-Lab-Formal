@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { LabAccount } from "@/components/lab-account";
+import { ParallaxImage } from "@/components/parallax-image";
+import { ScrollTrace } from "@/components/scroll-trace";
 import { SiteHeader } from "@/components/site-header";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { getAdminCaseList, getCurrentCase, getMyAttempt, getMyStats } from "@/lib/lab/cases";
@@ -20,6 +22,28 @@ const STATUS_LABEL: Record<string, string> = {
   feedback: "Feedback released",
 };
 
+const HOW = [
+  {
+    title: "Read the story",
+    body: "A short vignette: who the patient is, and why they're in front of you.",
+    img: "still-line",
+    alt: "A flat line on paper with a single red dot.",
+    pos: "pos-low",
+  },
+  {
+    title: "Work the trace",
+    body: "Rate, rhythm, P waves, intervals, Q waves, ST, T and QT, one step at a time. Open the full 12-lead and zoom whenever you need to.",
+    img: "still-glass-5",
+    alt: "A glass cardiac monitor with its leads.",
+  },
+  {
+    title: "See the key",
+    body: "Submit, then see your read beside the verified key, a reason for anything you missed, and one teaching point to keep.",
+    img: "still-heart-2",
+    alt: "A small red heart on pale paper.",
+  },
+];
+
 function Home() {
   const current = Route.useLoaderData();
   const { user, isPending } = useCurrentUserState();
@@ -27,9 +51,11 @@ function Home() {
   const [stats, setStats] = useState<{ reads: number; mean: number | null } | null>(null);
   const [attempt, setAttempt] = useState<"none" | "in_progress" | "submitted" | null>(null);
   const [adminCases, setAdminCases] = useState<AdminRow[]>([]);
+  const userId = user?.id;
+  const caseId = current?.id;
 
   useEffect(() => {
-    if (!user) {
+    if (!userId) {
       setMe(null);
       setStats(null);
       setAttempt(null);
@@ -44,7 +70,7 @@ function Home() {
         setMe(profile);
         const [s, a, list] = await Promise.all([
           getMyStats(),
-          current ? getMyAttempt({ data: { caseId: current.id } }) : Promise.resolve(null),
+          caseId ? getMyAttempt({ data: { caseId } }) : Promise.resolve(null),
           profile.role === "admin" ? getAdminCaseList() : Promise.resolve([] as AdminRow[]),
         ]);
         if (cancelled) return;
@@ -58,68 +84,124 @@ function Home() {
     return () => {
       cancelled = true;
     };
-  }, [user?.id, current?.id]);
+  }, [userId, caseId]);
 
-  const cta =
-    attempt === "submitted" ? "See your feedback" : attempt === "in_progress" ? "Continue your read" : "Start the read";
+  const cta = !user
+    ? "Read this week's case"
+    : attempt === "submitted"
+      ? "See your feedback"
+      : attempt === "in_progress"
+        ? "Continue your read"
+        : "Start this week's case";
 
   return (
     <>
       <SiteHeader />
-      <main className="wrap">
-        <div className="landing-head">
-          <p className="eyebrow">Twelve Leads</p>
-          <h1>
-            The Lab<span className="stop">.</span> Your call.
-          </h1>
-          <p className="lede">A 12-lead, a short story, ten steps. About ten minutes, every week. Free for any nurse.</p>
-        </div>
+      <main className="home">
+        <section className="hero">
+          <div className="hero-copy">
+            {me ? <p className="hello">Welcome back, {me.firstName}.</p> : null}
+            <h1 className="wordmark">
+              The Lab<span className="stop">.</span>
+              <span className="wordmark-sub">Your call.</span>
+            </h1>
+            <p className="lede">
+              One 12-lead, one patient story, ten steps to your read. About ten minutes, a new case every Monday, free for
+              any nurse.
+            </p>
+            <div className="hero-actions">
+              {current ? (
+                <Link to="/case/$caseId" params={{ caseId: current.id }} className="btn btn-lg">
+                  {cta}
+                </Link>
+              ) : (
+                <p className="hero-wait">The next case opens on Monday.</p>
+              )}
+              <a href="#how" className="text-link">
+                How it works
+              </a>
+            </div>
+            {stats && stats.reads > 0 ? (
+              <p className="stats-line">
+                You've read <strong>{stats.reads}</strong> {stats.reads === 1 ? "case" : "cases"}
+                {stats.mean != null ? `, averaging ${Math.round(stats.mean * 100)}%.` : "."}
+              </p>
+            ) : null}
+          </div>
+          <ParallaxImage
+            name="still-heart-hero"
+            alt="An anatomical heart against a red background."
+            className="hero-image"
+            drift={48}
+            priority
+            sizes="(min-width: 880px) 42vw, 100vw"
+          />
+        </section>
 
-        <div className="entry">
-          <section className="card this-week" aria-labelledby="tw-title">
-            <p className="eyebrow">{me ? `Hi ${me.firstName} · this week` : "This week"}</p>
+        <ScrollTrace caption="Every read starts from the baseline. Work it the same way each time, and the patterns start to jump out." />
+
+        <section id="how" className="how" aria-labelledby="how-title">
+          <h2 id="how-title" className="section-title">
+            How a case works
+          </h2>
+          <ol className="how-steps">
+            {HOW.map((s, i) => (
+              <li key={s.title} className="how-step">
+                <ParallaxImage name={s.img} alt={s.alt} className={`how-image ${"pos" in s ? s.pos : ""}`} drift={i % 2 ? 28 : 20} sizes="(min-width: 880px) 30vw, 100vw" />
+                <div className="how-text">
+                  <span className="how-n" aria-hidden="true">
+                    {i + 1}
+                  </span>
+                  <h3>{s.title}</h3>
+                  <p>{s.body}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section className="this-week" aria-labelledby="tw-title">
+          <div className="tw-case">
+            <h2 id="tw-title" className="section-title">
+              This week's case
+            </h2>
             {current ? (
               <>
-                <h2 id="tw-title">{current.title}</h2>
-                <p className="vignette-preview">{current.vignette.split("\n").slice(0, 2).join(" · ")}</p>
-                <Link to="/case/$caseId" params={{ caseId: current.id }} className="btn block as-link">
-                  {user ? cta : "Read this week's case"}
+                <p className="tw-title">{current.title}</p>
+                <p className="tw-vignette">{current.vignette}</p>
+                <Link to="/case/$caseId" params={{ caseId: current.id }} className="btn">
+                  {cta}
                 </Link>
                 {!user ? <p className="fine">No account needed to read it. You'll only need one to submit.</p> : null}
               </>
             ) : (
-              <>
-                <h2 id="tw-title">The next case is on its way</h2>
-                <p className="fine">A new case opens every Monday.</p>
-              </>
+              <p className="tw-vignette">Nothing is open right now. A new case opens every Monday.</p>
             )}
-            {stats ? (
-              <p className="stats-line">
-                <strong>{stats.reads}</strong> {stats.reads === 1 ? "read" : "reads"} completed
-                {stats.mean != null ? ` · average ${Math.round(stats.mean * 100)}%` : ""}
-              </p>
-            ) : null}
-          </section>
-
-          {!isPending && !user ? <LabAccount /> : null}
-        </div>
+          </div>
+          {!isPending && !user ? (
+            <div className="tw-account">
+              <LabAccount
+                title="Keep your progress"
+                lead="A free account saves your reads, so you can see how you're tracking over time."
+                startWithSignUp
+              />
+            </div>
+          ) : null}
+        </section>
 
         {me?.role === "admin" ? (
           <section className="admin-block" aria-labelledby="admin-title">
-            <p className="eyebrow">Admin</p>
             <h2 id="admin-title" className="section-title">
-              All cases
+              All cases <span className="admin-tag">Admin</span>
             </h2>
             <ul className="case-list">
               {adminCases.map((c) => (
                 <li key={c.id}>
                   <Link to="/case/$caseId" params={{ caseId: c.id }} className="case-link">
-                    <span className="meta">
-                      Month {c.month} · Week {c.week} · {STATUS_LABEL[c.status] ?? c.status}
-                    </span>
                     <span className="case-title">{c.title}</span>
-                    <span className="fine">
-                      {c.submissions} {Number(c.submissions) === 1 ? "submission" : "submissions"} · Preview
+                    <span className="case-meta">
+                      Month {c.month}, week {c.week}. {STATUS_LABEL[c.status] ?? c.status}.{" "}
+                      {c.submissions} {Number(c.submissions) === 1 ? "submission" : "submissions"}.
                     </span>
                   </Link>
                 </li>
@@ -130,12 +212,12 @@ function Home() {
         ) : null}
 
         <footer className="site-foot">
-          <p className="fine">
+          <p>
             The Lab is a free learning resource from{" "}
             <a href="https://bundleofrays.com" target="_blank" rel="noopener noreferrer">
               Bundle of Rays
             </a>
-            . It is for education, not clinical decision-making.
+            . It's for education, not clinical decision-making.
           </p>
         </footer>
       </main>

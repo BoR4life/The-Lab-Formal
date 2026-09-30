@@ -2,10 +2,23 @@ import { useEffect, useState } from "react";
 
 const ZOOMS = [1, 1.75, 2.5, 3.5];
 
+type Props = {
+  src: string;
+  title: string;
+  /** Optional control from outside, so other parts of the page can open it. */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+};
+
 /** The 12-lead, with a full-screen view that zooms and pans. */
-export function EcgViewer({ src, title }: { src: string; title: string }) {
-  const [open, setOpen] = useState(false);
-  const [zoom, setZoom] = useState(1);
+export function EcgViewer({ src, title, open: openProp, onOpenChange }: Props) {
+  const [openLocal, setOpenLocal] = useState(false);
+  const open = openProp ?? openLocal;
+  const setOpen = (v: boolean) => {
+    setOpenLocal(v);
+    onOpenChange?.(v);
+  };
+  const [zoom, setZoom] = useState(1.75);
 
   useEffect(() => {
     if (!open) return;
@@ -33,15 +46,12 @@ export function EcgViewer({ src, title }: { src: string; title: string }) {
         <button
           type="button"
           className="ecg-frame"
-          onClick={() => {
-            setZoom(1.75);
-            setOpen(true);
-          }}
+          onClick={() => setOpen(true)}
         >
           <img src={src} alt={`12-lead ECG for ${title}. Opens full screen.`} />
         </button>
       </div>
-      <p className="fine">Tap the trace for full screen and zoom.</p>
+      <p className="fine">Tap the trace to open it full screen and zoom in.</p>
       {open ? (
         <div className="lightbox" role="dialog" aria-modal="true" aria-label="ECG full screen">
           <div className="lb-bar">
@@ -61,6 +71,7 @@ export function EcgViewer({ src, title }: { src: string; title: string }) {
               Close
             </button>
           </div>
+          <p className="lb-hint">Turn your phone sideways to see the whole trace.</p>
           <div className="lb-stage">
             <img src={src} alt={`12-lead ECG for ${title}, zoomed`} style={{ width: `${zoom * 100}%` }} />
           </div>

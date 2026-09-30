@@ -7,7 +7,7 @@ function mark(score: number | undefined) {
   return { cls: "wrong", label: "Missed" };
 }
 
-export function FeedbackView({ feedback }: { feedback: CaseFeedback }) {
+export function FeedbackView({ feedback, trace }: { feedback: CaseFeedback; trace?: React.ReactNode }) {
   const scored = STEPS.filter((s) => s.id !== "impression" && feedback.scorePerStep[s.id] != null);
   const points = scored.reduce((sum, s) => sum + (feedback.scorePerStep[s.id] ?? 0), 0);
   const keyBlank = JSON.stringify(feedback.key) === JSON.stringify(blankAnswers());
@@ -15,15 +15,22 @@ export function FeedbackView({ feedback }: { feedback: CaseFeedback }) {
   return (
     <section className="feedback" aria-labelledby="fb-title">
       <div className="card score-card">
-        <p className="eyebrow">Your read</p>
+        <p className="card-label">Your read</p>
         <h2 id="fb-title" className="score">
           {Math.round(points * 10) / 10}
           <span> of {scored.length} steps</span>
         </h2>
+        <p className="fine">
+          {scored.length - scored.filter((s) => (feedback.scorePerStep[s.id] ?? 0) >= 0.999).length === 0
+            ? "Every step matched the key."
+            : "Missed steps are marked in red, with the reasoning underneath."}
+        </p>
         {keyBlank ? (
           <p className="warn">The answer key for this case hasn't been written yet, so every step shows as missed.</p>
         ) : null}
       </div>
+
+      {trace ? <div className="fb-trace">{trace}</div> : null}
 
       <ol className="fb-steps">
         {scored.map((s) => {
@@ -31,9 +38,9 @@ export function FeedbackView({ feedback }: { feedback: CaseFeedback }) {
           const m = mark(score);
           const reason = feedback.stepReasons[s.id];
           return (
-            <li key={s.id} className={`fb-step ${m.cls}`}>
+            <li key={s.id} className={`fb-step ${m.cls}${m.cls === "right" ? " compact" : ""}`}>
               <header>
-                <span className="num">{s.n}</span>
+                <span className="num">{STEPS.findIndex((x) => x.id === s.id) + 1}</span>
                 <h3>{s.title}</h3>
                 <span className="fb-mark">{m.label}</span>
               </header>
@@ -47,6 +54,7 @@ export function FeedbackView({ feedback }: { feedback: CaseFeedback }) {
                   <dd>{describeStep(s.id, feedback.key)}</dd>
                 </div>
               </dl>
+              {m.cls === "right" ? <p className="fb-short">{describeStep(s.id, feedback.answers)}</p> : null}
               {m.cls !== "right" && reason ? <p className="fb-reason">{reason}</p> : null}
             </li>
           );
@@ -54,7 +62,7 @@ export function FeedbackView({ feedback }: { feedback: CaseFeedback }) {
       </ol>
 
       <div className="card">
-        <p className="eyebrow">Impression</p>
+        <h3 className="card-label">Impression</h3>
         <dl className="impressions">
           <div>
             <dt>Yours</dt>
@@ -68,7 +76,7 @@ export function FeedbackView({ feedback }: { feedback: CaseFeedback }) {
       </div>
 
       <div className="card teaching">
-        <p className="eyebrow">Teaching point</p>
+        <h3 className="card-label">Teaching point</h3>
         <p>{feedback.teachingPoint || "Not written yet."}</p>
       </div>
     </section>
