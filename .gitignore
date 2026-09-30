@@ -1,0 +1,11 @@
+node_modules/
+.vercel/
+.tanstack/
+screenshots/
+artifacts/
+attachments/
+.env
+*.log
+.pglite/
+dist/
+.output/

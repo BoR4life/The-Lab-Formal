@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="The Lab.">
+  <rect width="32" height="32" rx="7" fill="#F7F5F0"/>
+  <path d="M2.2 16.6H7.4L10 16.6L13.1 6.2L17.6 26.6L21 16.6H24.2" fill="none" stroke="#B03A2E" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="27.15" cy="16.6" r="2.05" fill="#B03A2E"/>
+</svg>

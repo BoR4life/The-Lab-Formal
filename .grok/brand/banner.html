@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Lab. banner</title>
+<style>
+  @font-face {
+    font-family: "Newsreader";
+    src: url("../fonts/newsreader-var.ttf") format("truetype");
+    font-weight: 500 700;
+    font-style: normal;
+    font-display: block;
+  }
+  @font-face {
+    font-family: "Newsreader";
+    src: url("../fonts/newsreader-italic-var.ttf") format("truetype");
+    font-weight: 500 700;
+    font-style: italic;
+    font-display: block;
+  }
+  @font-face {
+    font-family: "IBM Plex Mono";
+    src: url("../fonts/plex-mono-500.woff2") format("woff2");
+    font-weight: 500;
+    font-style: normal;
+    font-display: block;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1200px; height: 264px; overflow: hidden; background: #F7F5F0; }
+  .sheet {
+    width: 1200px;
+    height: 264px;
+    position: relative;
+    background: #F7F5F0;
+    color: #16181D;
+  }
+  .grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(to right, #F1D9D6 1px, transparent 1px),
+      linear-gradient(to bottom, #F1D9D6 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  .grid-major {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(to right, #F1D9D6 1.5px, transparent 1.5px),
+      linear-gradient(to bottom, #F1D9D6 1.5px, transparent 1.5px);
+    background-size: 110px 110px;
+  }
+  .lockup {
+    position: absolute;
+    left: 76px;
+    top: 28px;
+    text-align: left;
+  }
+  .name {
+    font-family: "Newsreader", Georgia, serif;
+    font-weight: 600;
+    font-style: normal;
+    font-size: 58px;
+    line-height: 0.88;
+    letter-spacing: -0.03em;
+    font-variation-settings: "opsz" 72, "wght" 600;
+    color: #16181D;
+  }
+  .stop { color: #B03A2E; }
+  .track {
+    margin-top: 10px;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 1;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #5F6368;
+    padding-left: 0.22em;
+  }
+  .tag {
+    margin-top: 12px;
+    font-family: "Newsreader", Georgia, serif;
+    font-weight: 500;
+    font-style: italic;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    font-variation-settings: "opsz" 36, "wght" 500;
+    color: #16181D;
+  }
+</style>
+</head>
+<body>
+  <div class="sheet">
+    <div class="grid"></div>
+    <div class="grid-major"></div>
+    <div class="lockup" id="lockup">
+      <h1 class="name" id="name">The Lab<span class="stop">.</span></h1>
+      <p class="track" id="track">Twelve Leads</p>
+      <p class="tag" id="tag">The Lab<span class="stop">.</span> Your call.</p>
+    </div>
+  </div>
+</body>
+</html>
