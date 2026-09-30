@@ -5,15 +5,18 @@ import { ParallaxImage } from "@/components/parallax-image";
 import { ScrollTrace } from "@/components/scroll-trace";
 import { SiteHeader } from "@/components/site-header";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
-import { getAdminCaseList, getCurrentCase, getMyAttempt, getMyStats } from "@/lib/lab/cases";
+import { getAdminCaseList, getCurrentCase, getMyAttempt, getOpenCases, getMyStats } from "@/lib/lab/cases";
 import { getMe } from "@/lib/lab/me";
 
 export const Route = createFileRoute("/")({
-  loader: () => getCurrentCase(),
+  loader: async () => {
+    const [current, all] = await Promise.all([getCurrentCase(), getOpenCases()]);
+    return { current, earlier: all.filter((c) => c.id !== current?.id) };
+  },
   component: Home,
 });
 
-type AdminRow = { id: string; title: string; status: string; month: number; week: number; submissions: number };
+type AdminRow = { id: string; title: string; status: string; case_number: number; submissions: number };
 
 const STATUS_LABEL: Record<string, string> = {
   draft: "Draft",
@@ -45,7 +48,7 @@ const HOW = [
 ];
 
 function Home() {
-  const current = Route.useLoaderData();
+  const { current, earlier } = Route.useLoaderData();
   const { user, isPending } = useCurrentUserState();
   const [me, setMe] = useState<{ firstName: string; role: "learner" | "admin" } | null>(null);
   const [stats, setStats] = useState<{ reads: number; mean: number | null } | null>(null);
@@ -87,12 +90,12 @@ function Home() {
   }, [userId, caseId]);
 
   const cta = !user
-    ? "Read this week's case"
+    ? "Read the latest case"
     : attempt === "submitted"
       ? "See your feedback"
       : attempt === "in_progress"
         ? "Continue your read"
-        : "Start this week's case";
+        : "Start the latest case";
 
   return (
     <>
@@ -106,8 +109,7 @@ function Home() {
               <span className="wordmark-sub">Your call.</span>
             </h1>
             <p className="lede">
-              One 12-lead, one patient story, one systematic read, step by step. About ten minutes, a new case every Monday, free for
-              any nurse.
+              One 12-lead, one patient story, one systematic read, step by step. About ten minutes, free for any nurse. New cases are added as they're ready, and every case stays open.
             </p>
             <div className="hero-actions">
               {current ? (
@@ -115,7 +117,7 @@ function Home() {
                   {cta}
                 </Link>
               ) : (
-                <p className="hero-wait">The next case opens on Monday.</p>
+                <p className="hero-wait">The first case is on its way.</p>
               )}
               <a href="#how" className="text-link">
                 How it works
@@ -163,7 +165,7 @@ function Home() {
         <section className="this-week" aria-labelledby="tw-title">
           <div className="tw-case">
             <h2 id="tw-title" className="section-title">
-              This week's case
+              Latest case
             </h2>
             {current ? (
               <>
@@ -175,7 +177,7 @@ function Home() {
                 {!user ? <p className="fine">No account needed to read it. You'll only need one to submit.</p> : null}
               </>
             ) : (
-              <p className="tw-vignette">Nothing is open right now. A new case opens every Monday.</p>
+              <p className="tw-vignette">Nothing is open right now. New cases are added as they're ready.</p>
             )}
           </div>
           {!isPending && !user ? (
@@ -189,6 +191,23 @@ function Home() {
           ) : null}
         </section>
 
+        {earlier.length ? (
+          <section className="earlier" aria-labelledby="earlier-title">
+            <h2 id="earlier-title" className="section-title">
+              Earlier cases
+            </h2>
+            <ul className="case-list">
+              {earlier.map((c) => (
+                <li key={c.id}>
+                  <Link to="/case/$caseId" params={{ caseId: c.id }} className="case-link">
+                    <span className="case-title">{c.title}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
         {me?.role === "admin" ? (
           <section className="admin-block" aria-labelledby="admin-title">
             <h2 id="admin-title" className="section-title">
@@ -200,7 +219,7 @@ function Home() {
                   <Link to="/case/$caseId" params={{ caseId: c.id }} className="case-link">
                     <span className="case-title">{c.title}</span>
                     <span className="case-meta">
-                      Month {c.month}, week {c.week}. {STATUS_LABEL[c.status] ?? c.status}.{" "}
+                      Case {c.case_number}. {STATUS_LABEL[c.status] ?? c.status}.{" "}
                       {c.submissions} {Number(c.submissions) === 1 ? "submission" : "submissions"}.
                     </span>
                   </Link>

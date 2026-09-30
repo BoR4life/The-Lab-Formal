@@ -182,7 +182,7 @@ function CasePage() {
         <main className="wrap">
           <h1 className="h-page">{ready || !isPending ? "This case isn't open." : "Loading"}</h1>
           <p>
-            <Link to="/">Back to this week's case</Link>
+            <Link to="/">Back to the latest case</Link>
           </p>
         </main>
       </>
@@ -231,7 +231,7 @@ function CasePage() {
               ) : lab.status !== "open" && role !== "admin" ? (
                 <div className="card">
                   <h2 className="card-label">Closed</h2>
-                  <p>This case no longer takes new reads. The next one opens on Monday.</p>
+                  <p>This case no longer takes new reads.</p>
                 </div>
               ) : (
                 <ReadSteps

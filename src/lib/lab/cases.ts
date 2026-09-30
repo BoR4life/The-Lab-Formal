@@ -5,10 +5,16 @@ import { authMiddleware } from "@/lib/auth/middleware";
 const caseIdInput = z.object({ caseId: z.string().min(1).max(80) });
 const answersInput = z.object({ caseId: z.string().min(1).max(80), answers: z.unknown() });
 
-/** Public: this week's open case, without any answer content. */
+/** Public: the newest open case, without any answer content. */
 export const getCurrentCase = createServerFn({ method: "GET" }).handler(async () => {
   const { currentOpenCase } = await import("./cases.server");
   return currentOpenCase();
+});
+
+/** Public: all published cases, newest first. */
+export const getOpenCases = createServerFn({ method: "GET" }).handler(async () => {
+  const { openCaseList } = await import("./cases.server");
+  return openCaseList();
 });
 
 /** Public: one case's learner-facing fields. Drafts return null. */

@@ -24,8 +24,7 @@ type CaseRow = {
   step_reasons: unknown;
   model_impression: string;
   teaching_point: string;
-  month: number;
-  week: number;
+  case_number: number;
 };
 
 type SubmissionRow = {
@@ -75,20 +74,20 @@ async function fetchCase(caseId: string): Promise<CaseRow | null> {
   const sql = await getSql();
   const rows = await sql<CaseRow>`
     select id, title, status, vignette, ecg_image, scored_steps, answer_key, step_reasons,
-           model_impression, teaching_point, month, week
+           model_impression, teaching_point, case_number
     from cases where id = ${caseId}
   `;
   return rows[0] ?? null;
 }
 
-/** Anyone, signed in or not: the case that is open now (latest by month and week). */
+/** Anyone, signed in or not: the newest open case. */
 export async function currentOpenCase(): Promise<PublicCase | null> {
   const sql = await getSql();
   const rows = await sql<CaseRow>`
     select id, title, status, vignette, ecg_image, scored_steps, answer_key, step_reasons,
-           model_impression, teaching_point, month, week
+           model_impression, teaching_point, case_number
     from cases where status = 'open'
-    order by month desc, week desc, updated_at desc
+    order by case_number desc, updated_at desc
     limit 1
   `;
   return rows[0] ? toPublic(rows[0]) : null;
@@ -108,14 +107,24 @@ export async function adminCase(userId: string, caseId: string): Promise<PublicC
   return row ? toPublic(row) : null;
 }
 
+/** Anyone: every published case, newest first. No answer content. */
+export async function openCaseList() {
+  const sql = await getSql();
+  return sql<{ id: string; title: string; case_number: number }>`
+    select id, title, case_number from cases
+    where status in ('open', 'feedback')
+    order by case_number desc, updated_at desc
+  `;
+}
+
 export async function adminCaseList(userId: string) {
   if (!(await isAdmin(userId))) throw new Error("Admins only");
   const sql = await getSql();
-  return sql<{ id: string; title: string; status: string; month: number; week: number; submissions: number }>`
-    select c.id, c.title, c.status, c.month, c.week,
+  return sql<{ id: string; title: string; status: string; case_number: number; submissions: number }>`
+    select c.id, c.title, c.status, c.case_number,
            (select count(*) from submissions s where s.case_id = c.id and s.status = 'submitted') as submissions
     from cases c
-    order by c.month desc, c.week desc
+    order by c.case_number desc
   `;
 }
 
