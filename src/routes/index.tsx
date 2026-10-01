@@ -131,14 +131,19 @@ function Home() {
               </p>
             ) : null}
           </div>
-          <ParallaxImage
-            name="still-heart-hero"
-            alt="An anatomical heart against a red background."
-            className="hero-image"
-            drift={48}
-            priority
-            sizes="(min-width: 880px) 42vw, 100vw"
-          />
+          <div className="hero-art">
+            <ParallaxImage
+              name="still-heart-hero"
+              alt="An anatomical heart against a red background."
+              className="hero-image"
+              drift={36}
+              priority
+              sizes="(min-width: 880px) 40vw, 80vw"
+            />
+            <span className="sticker" aria-hidden="true">
+              Free for every nurse
+            </span>
+          </div>
         </section>
 
         <ScrollTrace caption="Every read starts from the baseline. Work it the same way each time, and the patterns start to jump out." />
