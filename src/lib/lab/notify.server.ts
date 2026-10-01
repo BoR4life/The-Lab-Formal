@@ -2,26 +2,12 @@
 import { getSql } from "@/lib/db";
 import { loadProfile } from "./profile.server";
 
-const esc = (s: string) =>
-  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+import { mailConfigured } from "./mail.server";
+import { buildNewCaseEmail } from "./newcase-email.ts";
 
 async function requireAdmin(userId: string) {
   const p = await loadProfile(userId);
   if (p.role !== "admin") throw new Error("Admins only");
-}
-
-export async function getNotify(userId: string): Promise<boolean> {
-  await loadProfile(userId);
-  const sql = await getSql();
-  const rows = await sql<{ notify_new_cases: boolean }>`select notify_new_cases from users where id = ${userId}`;
-  return !!rows[0]?.notify_new_cases;
-}
-
-export async function setNotify(userId: string, on: boolean): Promise<boolean> {
-  await loadProfile(userId);
-  const sql = await getSql();
-  await sql`update users set notify_new_cases = ${on} where id = ${userId}`;
-  return on;
 }
 
 /** Public. The token is the credential; it only ever switches email off. */
@@ -29,7 +15,7 @@ export async function unsubscribe(token: string): Promise<boolean> {
   if (!/^[a-f0-9]{32,64}$/.test(token)) return false;
   const sql = await getSql();
   const rows = await sql<{ id: string }>`
-    update users set notify_new_cases = false where unsubscribe_token = ${token} returning id
+    update users set notify_new_cases = false, notify_confirm_token = null where unsubscribe_token = ${token} returning id
   `;
   return rows.length > 0;
 }
@@ -48,42 +34,12 @@ export async function notifyInfo(userId: string) {
     : [];
   return {
     subscribers: Number(count?.n ?? 0),
-    configured: !!(process.env.RESEND_API_KEY && process.env.MAIL_FROM),
+    configured: mailConfigured(),
     latest: latest[0] ? { id: latest[0].id, title: latest[0].title } : null,
     lastSent: sent[0]
       ? { at: sent[0].sent_at instanceof Date ? sent[0].sent_at.toISOString() : String(sent[0].sent_at), recipients: sent[0].recipients }
       : null,
   };
-}
-
-function build(origin: string, c: { id: string; title: string; vignette: string }, firstName: string, token: string) {
-  const link = `${origin}/case/${c.id}`;
-  const stop = `${origin}/unsubscribe?token=${token}`;
-  const teaser = c.vignette.length > 220 ? c.vignette.slice(0, 217).trimEnd() + "..." : c.vignette;
-  const subject = `New case live: ${c.title}`;
-  const text = [
-    `Hi ${firstName},`,
-    "",
-    `${c.title} is live on The Lab. About ten minutes, free, same step-by-step read.`,
-    "",
-    teaser,
-    "",
-    `Read it here: ${link}`,
-    "",
-    "Brad Chesham, RN",
-    "The Lab, a free learning resource from Bundle of Rays",
-    "",
-    `You're getting this because you asked for new-case emails. Unsubscribe: ${stop}`,
-  ].join("\n");
-  const html = `<div style="font-family:system-ui,sans-serif;max-width:520px;color:#16181d;line-height:1.5">
-<p>Hi ${esc(firstName)},</p>
-<p><strong>${esc(c.title)}</strong> is live on The Lab. About ten minutes, free, same step-by-step read.</p>
-<p style="color:#555">${esc(teaser)}</p>
-<p><a href="${link}" style="background:#c1273b;color:#fff;padding:10px 16px;border-radius:6px;text-decoration:none;display:inline-block">Read the case</a></p>
-<p>Brad Chesham, RN<br>The Lab, a free learning resource from Bundle of Rays</p>
-<p style="font-size:12px;color:#777">You're getting this because you asked for new-case emails. <a href="${stop}">Unsubscribe</a></p>
-</div>`;
-  return { subject, text, html, stop };
 }
 
 export async function sendNewCaseEmail(userId: string, origin: string, again: boolean) {
@@ -108,7 +64,7 @@ export async function sendNewCaseEmail(userId: string, origin: string, again: bo
   let sent = 0;
   for (let i = 0; i < people.length; i += 100) {
     const batch = people.slice(i, i + 100).map((p) => {
-      const m = build(origin, c, p.first_name, p.unsubscribe_token);
+      const m = buildNewCaseEmail(origin, c, p.first_name, p.unsubscribe_token);
       return {
         from,
         to: [p.email],

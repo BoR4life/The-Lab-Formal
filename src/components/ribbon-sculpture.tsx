@@ -209,7 +209,8 @@ export function RibbonSculpture({ className = "" }: { className?: string }) {
     const t0 = performance.now();
 
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, window.innerWidth < 700 ? 1.5 : 2);
+      const weak = (navigator.hardwareConcurrency ?? 8) <= 4;
+      const dpr = Math.min(window.devicePixelRatio || 1, window.innerWidth < 700 || weak ? 1.25 : 2);
       const rect = canvas.getBoundingClientRect();
       w = Math.max(1, Math.round(rect.width * dpr));
       h = Math.max(1, Math.round(rect.height * dpr));
@@ -237,9 +238,24 @@ export function RibbonSculpture({ className = "" }: { className?: string }) {
       gl.drawElements(gl.TRIANGLES, idx.length, gl.UNSIGNED_SHORT, 0);
     };
 
+    // If the device can't keep up (slow phone), settle on a still frame instead of stuttering.
+    let last = 0;
+    let slow = 0;
+    let frames = 0;
+    let still = false;
     const loop = (now: number) => {
       raf = 0;
-      if (!visible) return;
+      if (!visible || still) return;
+      if (last) {
+        frames += 1;
+        slow += now - last > 45 ? 1 : 0;
+        if (frames === 40 && slow > 14) {
+          still = true;
+          draw(now);
+          return;
+        }
+      }
+      last = now;
       draw(now);
       if (!reduce.matches) raf = requestAnimationFrame(loop);
     };
@@ -255,6 +271,7 @@ export function RibbonSculpture({ className = "" }: { className?: string }) {
     resize();
     const io = new IntersectionObserver(([entry]) => {
       visible = entry.isIntersecting;
+      last = 0;
       if (visible) kick();
     });
     io.observe(canvas);

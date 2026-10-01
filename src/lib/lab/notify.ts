@@ -5,16 +5,45 @@ import { authMiddleware } from "@/lib/auth/middleware";
 export const getMyNotify = createServerFn({ method: "GET" })
   .middleware([authMiddleware])
   .handler(async ({ context }) => {
-    const { getNotify } = await import("./notify.server");
-    return getNotify(context.userId);
+    const { notifyState } = await import("./account.server");
+    return notifyState(context.userId);
   });
 
+/** Turning on sends a confirmation email; stays pending until they click it. */
 export const setMyNotify = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator((d: unknown) => z.object({ on: z.boolean() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { setNotify } = await import("./notify.server");
-    return setNotify(context.userId, data.on);
+    const { startNotify, stopNotify } = await import("./account.server");
+    return data.on ? startNotify(context.userId) : stopNotify(context.userId);
+  });
+
+export const confirmNotifyToken = createServerFn({ method: "POST" })
+  .validator((d: unknown) => z.object({ token: z.string().max(80) }).parse(d))
+  .handler(async ({ data }) => {
+    const { confirmNotify } = await import("./account.server");
+    return confirmNotify(data.token);
+  });
+
+export const requestReset = createServerFn({ method: "POST" })
+  .validator((d: unknown) => z.object({ email: z.string().email().max(200) }).parse(d))
+  .handler(async ({ data }) => {
+    const { requestPasswordReset } = await import("./account.server");
+    return requestPasswordReset(data.email);
+  });
+
+export const checkReset = createServerFn({ method: "POST" })
+  .validator((d: unknown) => z.object({ token: z.string().max(80) }).parse(d))
+  .handler(async ({ data }) => {
+    const { checkResetToken } = await import("./account.server");
+    return checkResetToken(data.token);
+  });
+
+export const submitReset = createServerFn({ method: "POST" })
+  .validator((d: unknown) => z.object({ token: z.string().max(80), password: z.string().max(128) }).parse(d))
+  .handler(async ({ data }) => {
+    const { resetPassword } = await import("./account.server");
+    return resetPassword(data.token, data.password);
   });
 
 /** Public: the token in an email's unsubscribe link. */

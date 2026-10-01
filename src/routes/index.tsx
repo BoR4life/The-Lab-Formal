@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { AdminNotify } from "@/components/admin-notify";
 import { Lub } from "@/components/lub";
 import { RibbonSculpture } from "@/components/ribbon-sculpture";
 import { LabAccount } from "@/components/lab-account";
@@ -10,6 +9,7 @@ import { SiteHeader } from "@/components/site-header";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { getAdminCaseList, getCurrentCase, getMyAttempt, getOpenCases, getMyStats } from "@/lib/lab/cases";
 import { getMe } from "@/lib/lab/me";
+import { getMyHistory } from "@/lib/lab/admin";
 
 export const Route = createFileRoute("/")({
   loader: async () => {
@@ -32,7 +32,7 @@ const HOW = [
   {
     title: "Read the story",
     body: "A short vignette: who the patient is, and why they're in front of you.",
-    img: "still-line",
+    img: "still-heart-hero",
     alt: "A flat line on paper with a single red dot.",
     pos: "pos-low",
   },
@@ -57,6 +57,7 @@ function Home() {
   const [stats, setStats] = useState<{ reads: number; mean: number | null } | null>(null);
   const [attempt, setAttempt] = useState<"none" | "in_progress" | "submitted" | null>(null);
   const [adminCases, setAdminCases] = useState<AdminRow[]>([]);
+  const [history, setHistory] = useState<Awaited<ReturnType<typeof getMyHistory>>>([]);
   const userId = user?.id;
   const caseId = current?.id;
 
@@ -66,6 +67,7 @@ function Home() {
       setStats(null);
       setAttempt(null);
       setAdminCases([]);
+      setHistory([]);
       return;
     }
     let cancelled = false;
@@ -74,15 +76,17 @@ function Home() {
         const profile = await getMe();
         if (cancelled) return;
         setMe(profile);
-        const [s, a, list] = await Promise.all([
+        const [s, a, list, hist] = await Promise.all([
           getMyStats(),
           caseId ? getMyAttempt({ data: { caseId } }) : Promise.resolve(null),
           profile.role === "admin" ? getAdminCaseList() : Promise.resolve([] as AdminRow[]),
+          getMyHistory(),
         ]);
         if (cancelled) return;
         setStats(s);
         setAttempt(a ? a.state : null);
         setAdminCases(list);
+        setHistory(hist);
       } catch {
         /* the page still works without the extras */
       }
@@ -217,6 +221,26 @@ function Home() {
           </section>
         ) : null}
 
+        {history.length ? (
+          <section className="history" aria-labelledby="hist-title">
+            <h2 id="hist-title" className="section-title">Your reads</h2>
+            <ul className="case-list">
+              {history.map((h) => (
+                <li key={h.id}>
+                  <Link to="/case/$caseId" params={{ caseId: h.id }} className="case-link">
+                    <span className="case-title">{h.title}</span>
+                    <span className="case-meta">
+                      {h.state === "submitted"
+                        ? `${Math.round(h.score! * 10) / 10} of ${h.outOf} steps. ${new Date(h.when).toLocaleDateString("en-AU", { day: "2-digit", month: "short", year: "numeric" })}.`
+                        : "In progress. Pick up where you left off."}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
         {me?.role === "admin" ? (
           <section className="admin-block" aria-labelledby="admin-title">
             <h2 id="admin-title" className="section-title">
@@ -236,7 +260,7 @@ function Home() {
               ))}
               {!adminCases.length ? <li className="fine">No cases yet.</li> : null}
             </ul>
-            <AdminNotify />
+            <p><Link className="btn" to="/admin">Open admin: edit cases, results, emails</Link></p>
           </section>
         ) : null}
 

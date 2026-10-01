@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { EcgViewer } from "@/components/ecg-viewer";
 import { FeedbackView } from "@/components/feedback-view";
+import { CaseDiscussion, ProblemLink } from "@/components/case-discussion";
 import { LabAccount } from "@/components/lab-account";
 import { ReadSteps } from "@/components/read-steps";
 import { SiteHeader } from "@/components/site-header";
@@ -212,6 +213,7 @@ function CasePage() {
                 Clear my read and try again (admin)
               </button>
             ) : null}
+            <CaseDiscussion caseId={lab.id} admin={role === "admin"} />
             <p>
               <Link to="/">Back to home</Link>
             </p>
@@ -260,6 +262,11 @@ function CasePage() {
             </div>
           </div>
         )}
+        {user ? (
+          <p className="fine problem-link">
+            <ProblemLink caseId={lab.id} />
+          </p>
+        ) : null}
       </main>
     </>
   );

@@ -1,5 +1,5 @@
 /** Server only. Scores a learner's read against the case key. */
-import { type Answers, type StepId, prBand, qtcBand } from "./ecg";
+import { type Answers, type StepId, prBand, qtcBand } from "./ecg.ts";
 
 function jaccard(a: string[], b: string[]): number {
   const A = new Set(a);

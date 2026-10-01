@@ -14,7 +14,7 @@ function Privacy() {
         <h2>What we keep</h2>
         <p>
           Your first name, email address and password (stored scrambled, never in plain text), plus the reads you submit and
-          your scores. If you tick the box, we also remember that you want new-case emails.
+          your scores. If you tick the box, we also remember that you want new-case emails, and we email you once to confirm it's really you. Anything you post in a case discussion, or send as a problem report, is kept too.
         </p>
 
         <h2>What we use it for</h2>
@@ -25,7 +25,7 @@ function Privacy() {
 
         <h2>Who sees it</h2>
         <p>
-          Only the person who runs The Lab. We don't sell or share your details, and we don't pass individual reads to
+          The person who runs The Lab. Other learners who have finished a case can see your first name beside any comment you post there, and nothing else. We don't sell or share your details, and we don't pass individual reads to
           employers. Anything we publish about how learners are doing is combined, not individual.
         </p>
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useRouter } from "@tanstack/react-router";
+import { Link, useRouter } from "@tanstack/react-router";
 import { authClient } from "@/lib/auth/client";
 import { UserButton } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
@@ -41,7 +41,8 @@ export function LabAccount({ title, lead, hideWhenSignedIn, startWithSignUp }: L
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [wantsEmail, setWantsEmail] = useState(false);
-  const [notify, setNotify] = useState<boolean | null>(null);
+  const [notify, setNotify] = useState<{ on: boolean; pending: boolean; emailed: boolean } | null>(null);
+  const [notice, setNotice] = useState("");
   const [profile, setProfile] = useState<{ firstName: string; role: "learner" | "admin" } | null>(null);
 
   useEffect(() => {
@@ -90,7 +91,10 @@ export function LabAccount({ title, lead, hideWhenSignedIn, startWithSignUp }: L
         if (wantsEmail) {
           try {
             await authClient.getSession();
-            await setMyNotify({ data: { on: true } });
+            const next = await setMyNotify({ data: { on: true } });
+            setNotify(next);
+            setNotice(next.emailed ? "Check your inbox and click the link to confirm the new-case emails." : "");
+            setNotice("Check your inbox to confirm the new-case emails.");
           } catch {
             /* the account exists; they can switch emails on from the home page */
           }
@@ -136,20 +140,31 @@ export function LabAccount({ title, lead, hideWhenSignedIn, startWithSignUp }: L
           <label className="check">
             <input
               type="checkbox"
-              checked={notify}
+              checked={notify.on || notify.pending}
               onChange={async (e) => {
                 const on = e.target.checked;
-                setNotify(on);
+                const before = notify;
+                setNotice("");
                 try {
-                  await setMyNotify({ data: { on } });
+                  const next = await setMyNotify({ data: { on } });
+                  setNotify(next);
+                  if (next.pending) {
+                    setNotice(
+                      next.emailed
+                        ? "Check your inbox and click the link to confirm."
+                        : "We couldn't send the confirmation email just now. Try again later.",
+                    );
+                  }
                 } catch {
-                  setNotify(!on);
+                  setNotify(before);
                 }
               }}
             />
             <span>Email me when a new case goes live</span>
           </label>
         ) : null}
+        {notify?.pending ? <p className="signin-lead">Waiting for you to confirm by email.</p> : null}
+        {notice ? <p className="signin-lead" role="status">{notice}</p> : null}
         <UserButton />
       </section>
     );
@@ -208,6 +223,11 @@ export function LabAccount({ title, lead, hideWhenSignedIn, startWithSignUp }: L
       {error ? (
         <p className="warn" role="alert">
           {error}
+        </p>
+      ) : null}
+      {mode === "in" ? (
+        <p className="signin-lead">
+          <Link to="/forgot">Forgot your password?</Link>
         </p>
       ) : null}
       <button className="btn block" type="submit" disabled={busy}>

@@ -10,15 +10,36 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as ConfirmRouteImport } from './routes/confirm'
+import { Route as ForgotRouteImport } from './routes/forgot'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as ResetRouteImport } from './routes/reset'
 import { Route as UnsubscribeRouteImport } from './routes/unsubscribe'
 import { Route as CaseCaseIdRouteImport } from './routes/case.$caseId'
+import { Route as AdminCaseCaseIdRouteImport } from './routes/admin.case.$caseId'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ApiCaseImageCaseIdRouteImport } from './routes/api/case-image.$caseId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConfirmRoute = ConfirmRouteImport.update({
+  id: '/confirm',
+  path: '/confirm',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotRoute = ForgotRouteImport.update({
+  id: '/forgot',
+  path: '/forgot',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -31,6 +52,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResetRoute = ResetRouteImport.update({
+  id: '/reset',
+  path: '/reset',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UnsubscribeRoute = UnsubscribeRouteImport.update({
   id: '/unsubscribe',
   path: '/unsubscribe',
@@ -41,71 +67,122 @@ const CaseCaseIdRoute = CaseCaseIdRouteImport.update({
   path: '/case/$caseId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminCaseCaseIdRoute = AdminCaseCaseIdRouteImport.update({
+  id: '/case/$caseId',
+  path: '/case/$caseId',
+  getParentRoute: () => AdminRoute,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCaseImageCaseIdRoute = ApiCaseImageCaseIdRouteImport.update({
+  id: '/api/case-image/$caseId',
+  path: '/api/case-image/$caseId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/confirm': typeof ConfirmRoute
+  '/forgot': typeof ForgotRoute
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
+  '/reset': typeof ResetRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/case/$caseId': typeof CaseCaseIdRoute
+  '/admin/case/$caseId': typeof AdminCaseCaseIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/case-image/$caseId': typeof ApiCaseImageCaseIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/confirm': typeof ConfirmRoute
+  '/forgot': typeof ForgotRoute
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
+  '/reset': typeof ResetRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/case/$caseId': typeof CaseCaseIdRoute
+  '/admin/case/$caseId': typeof AdminCaseCaseIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/case-image/$caseId': typeof ApiCaseImageCaseIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/confirm': typeof ConfirmRoute
+  '/forgot': typeof ForgotRoute
   '/login': typeof LoginRoute
   '/privacy': typeof PrivacyRoute
+  '/reset': typeof ResetRoute
   '/unsubscribe': typeof UnsubscribeRoute
   '/case/$caseId': typeof CaseCaseIdRoute
+  '/admin/case/$caseId': typeof AdminCaseCaseIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/api/case-image/$caseId': typeof ApiCaseImageCaseIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
+    | '/confirm'
+    | '/forgot'
     | '/login'
     | '/privacy'
+    | '/reset'
     | '/unsubscribe'
     | '/case/$caseId'
+    | '/admin/case/$caseId'
     | '/api/auth/$'
+    | '/api/case-image/$caseId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
+    | '/confirm'
+    | '/forgot'
     | '/login'
     | '/privacy'
+    | '/reset'
     | '/unsubscribe'
     | '/case/$caseId'
+    | '/admin/case/$caseId'
     | '/api/auth/$'
+    | '/api/case-image/$caseId'
   id:
     | '__root__'
     | '/'
+    | '/admin'
+    | '/confirm'
+    | '/forgot'
     | '/login'
     | '/privacy'
+    | '/reset'
     | '/unsubscribe'
     | '/case/$caseId'
+    | '/admin/case/$caseId'
     | '/api/auth/$'
+    | '/api/case-image/$caseId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRouteWithChildren
+  ConfirmRoute: typeof ConfirmRoute
+  ForgotRoute: typeof ForgotRoute
   LoginRoute: typeof LoginRoute
   PrivacyRoute: typeof PrivacyRoute
+  ResetRoute: typeof ResetRoute
   UnsubscribeRoute: typeof UnsubscribeRoute
   CaseCaseIdRoute: typeof CaseCaseIdRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ApiCaseImageCaseIdRoute: typeof ApiCaseImageCaseIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -115,6 +192,27 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/confirm': {
+      id: '/confirm'
+      path: '/confirm'
+      fullPath: '/confirm'
+      preLoaderRoute: typeof ConfirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot': {
+      id: '/forgot'
+      path: '/forgot'
+      fullPath: '/forgot'
+      preLoaderRoute: typeof ForgotRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -131,6 +229,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reset': {
+      id: '/reset'
+      path: '/reset'
+      fullPath: '/reset'
+      preLoaderRoute: typeof ResetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/unsubscribe': {
       id: '/unsubscribe'
       path: '/unsubscribe'
@@ -145,6 +250,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CaseCaseIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/case/$caseId': {
+      id: '/admin/case/$caseId'
+      path: '/case/$caseId'
+      fullPath: '/admin/case/$caseId'
+      preLoaderRoute: typeof AdminCaseCaseIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -152,16 +264,38 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/case-image/$caseId': {
+      id: '/api/case-image/$caseId'
+      path: '/api/case-image/$caseId'
+      fullPath: '/api/case-image/$caseId'
+      preLoaderRoute: typeof ApiCaseImageCaseIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface AdminRouteChildren {
+  AdminCaseCaseIdRoute: typeof AdminCaseCaseIdRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminCaseCaseIdRoute: AdminCaseCaseIdRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRouteWithChildren,
+  ConfirmRoute: ConfirmRoute,
+  ForgotRoute: ForgotRoute,
   LoginRoute: LoginRoute,
   PrivacyRoute: PrivacyRoute,
+  ResetRoute: ResetRoute,
   UnsubscribeRoute: UnsubscribeRoute,
   CaseCaseIdRoute: CaseCaseIdRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ApiCaseImageCaseIdRoute: ApiCaseImageCaseIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
