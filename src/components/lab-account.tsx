@@ -4,6 +4,7 @@ import { authClient } from "@/lib/auth/client";
 import { UserButton } from "@/lib/auth/gates";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { getMe } from "@/lib/lab/me";
+import { getMyNotify, setMyNotify } from "@/lib/lab/notify";
 
 const BEARER_KEY = "grok-auth.bearer-token";
 
@@ -39,7 +40,23 @@ export function LabAccount({ title, lead, hideWhenSignedIn, startWithSignUp }: L
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [wantsEmail, setWantsEmail] = useState(false);
+  const [notify, setNotify] = useState<boolean | null>(null);
   const [profile, setProfile] = useState<{ firstName: string; role: "learner" | "admin" } | null>(null);
+
+  useEffect(() => {
+    if (!user) {
+      setNotify(null);
+      return;
+    }
+    let off = false;
+    getMyNotify()
+      .then((v) => !off && setNotify(v))
+      .catch(() => !off && setNotify(null));
+    return () => {
+      off = true;
+    };
+  }, [user]);
 
   useEffect(() => {
     if (!user) {
@@ -70,6 +87,14 @@ export function LabAccount({ title, lead, hideWhenSignedIn, startWithSignUp }: L
           { onSuccess: (ctx) => storeBearer(ctx.response) },
         );
         if (signUpError) throw new Error(signUpError.message || "Could not create the account");
+        if (wantsEmail) {
+          try {
+            await authClient.getSession();
+            await setMyNotify({ data: { on: true } });
+          } catch {
+            /* the account exists; they can switch emails on from the home page */
+          }
+        }
       } else {
         const { error: signInError } = await authClient.signIn.email(
           { email: email.trim(), password, callbackURL: "/" },
@@ -107,6 +132,24 @@ export function LabAccount({ title, lead, hideWhenSignedIn, startWithSignUp }: L
         <p className="signin-lead">
           Role: <strong>{role}</strong>
         </p>
+        {notify !== null ? (
+          <label className="check">
+            <input
+              type="checkbox"
+              checked={notify}
+              onChange={async (e) => {
+                const on = e.target.checked;
+                setNotify(on);
+                try {
+                  await setMyNotify({ data: { on } });
+                } catch {
+                  setNotify(!on);
+                }
+              }}
+            />
+            <span>Email me when a new case goes live</span>
+          </label>
+        ) : null}
         <UserButton />
       </section>
     );
@@ -156,6 +199,12 @@ export function LabAccount({ title, lead, hideWhenSignedIn, startWithSignUp }: L
           required
         />
       </label>
+      {mode === "up" ? (
+        <label className="check">
+          <input type="checkbox" checked={wantsEmail} onChange={(e) => setWantsEmail(e.target.checked)} />
+          <span>Email me when a new case goes live</span>
+        </label>
+      ) : null}
       {error ? (
         <p className="warn" role="alert">
           {error}

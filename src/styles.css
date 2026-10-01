@@ -429,3 +429,12 @@ dd { margin: 0; }
 .fb-trace { margin: 4px 0 8px; }
 @media (min-width: 960px) { .ecg-peek { display: none; } .case .feedback .ecg-peek { display: inline-flex; } }
 .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* Privacy, unsubscribe and the new-case email controls */
+.prose h1 { font-family: var(--serif); font-size: var(--t-xl, 2rem); margin: 8px 0 12px; }
+.prose h2 { font-size: var(--t-md, 1.05rem); margin: 28px 0 6px; }
+.prose p { margin: 0 0 10px; max-width: 60ch; }
+.check { display: flex; gap: 10px; align-items: flex-start; margin: 4px 0 14px; font-size: var(--t-sm); cursor: pointer; }
+.check input { margin-top: 3px; accent-color: var(--trace); }
+.admin-notify { margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--line); max-width: 52ch; }
+.admin-notify .btn { margin-top: 10px; }

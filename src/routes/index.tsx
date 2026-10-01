@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { AdminNotify } from "@/components/admin-notify";
 import { LabAccount } from "@/components/lab-account";
 import { ParallaxImage } from "@/components/parallax-image";
 import { ScrollTrace } from "@/components/scroll-trace";
@@ -227,6 +228,7 @@ function Home() {
               ))}
               {!adminCases.length ? <li className="fine">No cases yet.</li> : null}
             </ul>
+            <AdminNotify />
           </section>
         ) : null}
 
@@ -236,7 +238,8 @@ function Home() {
             <a href="https://bundleofrays.com" target="_blank" rel="noopener noreferrer">
               Bundle of Rays
             </a>
-            . It's for education, not clinical decision-making.
+            . It's for education, not clinical decision-making.{" "}
+            <Link to="/privacy">Privacy</Link>
           </p>
         </footer>
       </main>
