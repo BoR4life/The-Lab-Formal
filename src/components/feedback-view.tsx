@@ -1,3 +1,4 @@
+import { Lub } from "@/components/lub";
 import { type CaseFeedback, type StepId, STEPS, blankAnswers, describeStep } from "@/lib/lab/ecg";
 
 function mark(score: number | undefined) {
@@ -15,6 +16,7 @@ export function FeedbackView({ feedback, trace }: { feedback: CaseFeedback; trac
   return (
     <section className="feedback" aria-labelledby="fb-title">
       <div className="card score-card">
+        <Lub className="score-lub" />
         <p className="card-label">Your read</p>
         <h2 id="fb-title" className="score">
           {Math.round(points * 10) / 10}

@@ -676,3 +676,61 @@ h1, h2, h3 { font-weight: 500; }
   .hero-image, .hero-art:hover .hero-image, .score, .choice[aria-checked="true"]::before { animation: none; }
   .hero-art:hover .sticker { transform: rotate(-12deg); }
 }
+
+/* ================= Imagery pass: cut-out heart, ribbed sculpture, Lub ================= */
+.hero { position: relative; isolation: isolate; }
+.hero-sculpture {
+  position: absolute;
+  z-index: -1;
+  inset: -22% -62%;
+  width: 224%;
+  height: 144%;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(closest-side, #000 72%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 72%, transparent 100%);
+}
+@media (max-width: 879px) {
+  .hero-sculpture { inset: -14% -52%; width: 204%; height: 128%; opacity: 0.75; }
+}
+@media (prefers-color-scheme: dark) { .hero-sculpture { opacity: 0.75; } }
+
+/* The heart floats inside its arch, free of the old coral backdrop. */
+.hero-image.cutout {
+  background:
+    radial-gradient(circle at 50% 36%, #fff8f6 0%, var(--wash) 52%, color-mix(in srgb, var(--rose) 70%, var(--wash)) 130%);
+}
+.hero-image.cutout::after { display: none; }
+.hero-image.cutout img {
+  position: absolute;
+  inset: auto;
+  left: 50%;
+  bottom: 7%;
+  width: 76%;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 26px 22px rgba(92, 26, 44, 0.38));
+  transform: translate3d(-50%, calc((var(--p, 0.5) - 0.5) * var(--drift, 36px) * -1), 0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-image.cutout img { transform: translate3d(-50%, 0, 0); }
+}
+
+/* Lub: the arch-shaped mascot */
+.lub { width: 64px; height: auto; overflow: visible; }
+.lub-body { fill: var(--rose); stroke: var(--velvet); stroke-width: 2; stroke-linejoin: round; }
+.lub-eye { fill: #fff; stroke: var(--velvet); stroke-width: 1.4; }
+.lub-pupil { fill: var(--velvet-deep); }
+.lub-pupil-g { transition: transform 0.12s ease-out; }
+.lub-cheek { fill: var(--trace); opacity: 0.28; }
+.lub-mouth { fill: none; stroke: var(--velvet); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+@media (prefers-color-scheme: dark) {
+  .lub-body { stroke: var(--on-velvet); }
+  .lub-eye { stroke: var(--on-velvet); }
+  .lub-mouth { stroke: var(--on-velvet); }
+}
+.foot-lub { display: block; margin: 0 auto 6px; transition: transform 0.25s ease; }
+.foot-lub:hover { animation: hop 0.5s ease; }
+@keyframes hop { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-9px) rotate(-4deg); } 70% { transform: translateY(0) rotate(2deg); } }
+.score-lub { position: absolute; top: 14px; right: 16px; width: 46px; }
+.site-foot::before { margin-bottom: 8px; }
+@media (prefers-reduced-motion: reduce) { .foot-lub:hover { animation: none; } }

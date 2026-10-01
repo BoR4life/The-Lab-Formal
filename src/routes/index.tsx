@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { AdminNotify } from "@/components/admin-notify";
+import { Lub } from "@/components/lub";
+import { RibbonSculpture } from "@/components/ribbon-sculpture";
 import { LabAccount } from "@/components/lab-account";
 import { ParallaxImage } from "@/components/parallax-image";
 import { ScrollTrace } from "@/components/scroll-trace";
@@ -132,10 +134,11 @@ function Home() {
             ) : null}
           </div>
           <div className="hero-art">
+            <RibbonSculpture className="hero-sculpture" />
             <ParallaxImage
-              name="still-heart-hero"
-              alt="An anatomical heart against a red background."
-              className="hero-image"
+              name="heart-cutout"
+              alt="An anatomical human heart."
+              className="hero-image cutout"
               drift={36}
               priority
               sizes="(min-width: 880px) 40vw, 80vw"
@@ -238,6 +241,7 @@ function Home() {
         ) : null}
 
         <footer className="site-foot">
+          <Lub className="foot-lub" />
           <p>
             The Lab is a free learning resource from{" "}
             <a href="https://bundleofrays.com" target="_blank" rel="noopener noreferrer">
